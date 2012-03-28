@@ -1,0 +1,8 @@
+// details for x86 version of libraw package
+// build with: autopackage x86.autopkg libraw.autopkg  
+@import "libraw.inc";
+
+#define { 
+    flavor: "vc10"; 
+    arch : "x86";
+}

@@ -1,0 +1,59 @@
+@import "version.inc" ;
+@import "outercurve.inc" ;
+
+package {
+    name: "libraw-dev-common";
+    version: "${package-version}";
+    arch: any;
+    display-name: "libraw Dev Library-common";
+}
+
+metadata {
+    summary: "The libraw developer library (common)";
+    description: @"libraw"; 
+        
+    icon: @"libraw.png";
+    
+    author-version : "0.14.5";
+    bug-tracker: "https://github.com/coapp-packages/libraw/issues";
+    stability : "0";
+    licenses : {
+        LGPL
+    };
+}
+
+files[headers] {
+    root: "..\\libraw\\";
+    include: {
+        "*.h"
+};
+    
+    trim-path:all;
+    
+    // ensures that all the header files end up in a subfolder called 'include'
+    destination-path:"include";
+}
+
+files[docs] {
+    root: "..\\doc\\";
+    include: {
+        "*"
+    };
+    
+    trim-path:all;
+    
+    // ensures that all the documentation files end up in a subfolder called 'docs'
+    destination-path:"docs";
+
+}
+
+// the 'name' of the developer library isn't terribly important...
+developer-library[libraw] {
+    headers: { 
+        headers
+    };
+    
+    docs: {
+        docs
+    };
+}

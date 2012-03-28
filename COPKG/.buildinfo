@@ -1,0 +1,158 @@
+/* target information */
+@import "version.inc";
+
+
+#product-info  {
+	product-name: "libraw";
+	version: "0.14.5";
+	original-source-location: "";
+	original-source-website: "";
+	license: "LGPL";
+	packager: "Hamish C";
+}
+
+test {
+    default : false;
+    uses: release;
+    build-command: @"
+	    rem";
+};
+
+package {
+    
+    default : false;
+    uses : sign;
+    
+    targets: { 
+        @"copkg\libraw[vc10]-${package-version}-x86.msi",
+        @"copkg\libraw-dev[vc10]-${package-version}-x86.msi",
+        @"copkg\libraw-dev-common-${package-version}-any.msi",
+        @"copkg\libraw[vc10]-${package-version}-x64.msi",
+        @"copkg\libraw-dev[vc10]-${package-version}-x64.msi"
+    };
+    
+    build-command : @"
+        REM THERE IS SOME GOOFY STUFF IN HERE TO WORK AROUND A COUPLE BUGS IN AUTOPACKAGE.
+        REM FIXES COMING SOON...
+        cd COPKG
+        coapp add-feed %cd%\
+        coapp --force-scan list 
+        autopackage libraw-dev-common.autopkg || goto failed
+        coapp --force-scan list 
+        autopackage libraw[vc10]-x86.autopkg libraw-dev[vc10]-x86.autopkg || goto failed
+        coapp --force-scan list 
+        autopackage libraw[vc10]-x64.autopkg libraw-dev[vc10]-x64.autopkg || goto failed
+        coapp --force-scan list 
+        coapp remove-feed %cd%\
+        ptk update-version
+    ";
+
+	clean-command: @"del COPKG\*.msi COPKG\*.wixpdb";
+	
+};
+
+
+update-version {
+    default : false;
+    
+    build-command : @"
+        REM auto-increment version.inc file...
+        
+        cd COPKG
+        setlocal EnableDelayedExpansion
+        for /F ""tokens=4,5,6,7  delims=.; "" %%v in (version.inc) do (
+            set /a build=%%y + 1
+            set VERSTRING=#define { package-version: %%v.%%w.%%x.!build!; }
+        )
+        echo !VERSTRING! > version.inc
+    ";
+}
+
+release {
+    set: BuildCfg="Release";
+    uses: x86;
+    uses: x64;
+};
+
+sign {
+    default : false;
+    uses: release;
+    build-command: @"simplesigner.exe --nologo --sign output\vc10\x86\release\bin\**.dll output\vc10\x86\release\bin\**.exe output\vc10\x64\release\bin\**.dll output\vc10\x64\release\bin\**.exe";
+};
+
+
+x86 {
+    default : false;
+    compiler: vc10;
+    platform: x86;
+    
+    targets: { 
+		"output\vc10\x86\release\bin\4channels.exe",
+		"output\vc10\x86\release\bin\dcraw_emu.exe",
+		"output\vc10\x86\release\bin\dcraw_half.exe",
+		"output\vc10\x86\release\bin\half_mt.exe",
+		"output\vc10\x86\release\bin\mem_image.exe",
+		"output\vc10\x86\release\bin\multirender_test.exe",
+		"output\vc10\x86\release\bin\postprocessing_benchmark.exe",
+		"output\vc10\x86\release\bin\raw-identify.exe",
+		"output\vc10\x86\release\bin\simple_dcraw.exe",
+		"output\vc10\x86\release\bin\unprocessed_raw.exe",
+		"output\vc10\x86\release\bin\libraw.dll",
+		"output\vc10\x86\release\bin\libraw.lib",
+		"output\vc10\x86\release\bin\libraw_static.lib",
+		
+	};
+	
+    build-command:@"
+        del /S /Q /A - bin\*.exe bin\*.dll object\*.obj lib\*.lib lib\*.exp > nul 2>NUL
+        nmake /f Makefile.msvc
+
+        mkdir output\vc10\x86\release\bin
+        copy bin\*.exe output\vc10\x86\release\bin
+        copy bin\*.dll output\vc10\x86\release\bin
+        copy lib\*.lib output\vc10\x86\release\bin
+	";
+    
+    clean-command:@"
+       if exist output rmdir /s /q output > nul 2> nul
+       del /S /Q /A - bin\*.exe bin\*.dll object\*.obj lib\*.lib lib\*.exp > nul 2>NUL
+    ";
+};
+
+x64 {
+    default : false;
+    compiler: vc10;
+    platform: x64;
+
+	targets: { 
+		"output\vc10\x64\release\bin\4channels.exe",
+		"output\vc10\x64\release\bin\dcraw_emu.exe",
+		"output\vc10\x64\release\bin\dcraw_half.exe",
+		"output\vc10\x64\release\bin\half_mt.exe",
+		"output\vc10\x64\release\bin\mem_image.exe",
+		"output\vc10\x64\release\bin\multirender_test.exe",
+		"output\vc10\x64\release\bin\postprocessing_benchmark.exe",
+		"output\vc10\x64\release\bin\raw-identify.exe",
+		"output\vc10\x64\release\bin\simple_dcraw.exe",
+		"output\vc10\x64\release\bin\unprocessed_raw.exe",
+		"output\vc10\x64\release\bin\libraw.dll",
+		"output\vc10\x64\release\bin\libraw.lib",
+		"output\vc10\x64\release\bin\libraw_static.lib",
+		
+	};
+	
+    build-command:@"
+        del /S /Q /A - bin\*.exe bin\*.dll object\*.obj lib\*.lib lib\*.exp > nul 2>NUL
+        nmake /f Makefile.msvc
+
+        mkdir output\vc10\x64\release\bin
+        copy bin\*.exe output\vc10\x64\release\bin
+        copy bin\*.dll output\vc10\x64\release\bin
+        copy lib\*.lib output\vc10\x64\release\bin
+    ";
+    clean-command:@"
+       if exist output rmdir /s /q output > nul 2> nul
+       del /S /Q /A - bin\*.exe bin\*.dll object\*.obj lib\*.lib lib\*.exp > nul 2>NUL
+       
+    ";
+};
